@@ -12,11 +12,12 @@ on:
           - destroy
 
 jobs:
-  terraform:
+  create-ssm-parameters:
+    name: Create SSM Parameters
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: infra  # Set the Terraform directory
+        working-directory: infra  # Ensure Terraform runs in the right directory
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -24,23 +25,42 @@ jobs:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Apply Only SSM Parameters
+        run: |
+          terraform apply -target=aws_ssm_parameter.vpc_id \
+                         -target=aws_ssm_parameter.public_subnet_id_1 \
+                         -target=aws_ssm_parameter.public_subnet_id_2 \
+                         -target=aws_ssm_parameter.private_subnet_id \
+                         -target=aws_ssm_parameter.igw_id \
+                         -auto-approve
+
+  deploy-infrastructure:
+    name: Deploy Full Infrastructure
+    needs: create-ssm-parameters  # 🚀 Ensures this job runs AFTER SSM parameters are created
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infra
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
 
       - name: Terraform Init
         run: terraform init
 
       - name: Terraform Plan
-        run: terraform plan -target=aws_vpc.gloria_vpc -target=aws_subnet.public_subnet -target=aws_internet_gateway.gloria_igw
+        run: terraform plan
 
-      - name: Terraform Apply
+      - name: Terraform Apply (Full Infrastructure)
         if: github.event.inputs.action == 'apply'
         run: terraform apply -auto-approve
 
-      - name: Terraform Destroy
+      - name: Terraform Destroy (Optional)
         if: github.event.inputs.action == 'destroy'
         run: terraform destroy -auto-approve
