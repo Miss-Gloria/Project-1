@@ -91,8 +91,37 @@ resource "aws_ssm_parameter" "igw_id" {
   name  = "/terraform/gloria_igw_id"
   type  = "String"
   value = aws_internet_gateway.gloria_igw.id
+}
+# Store VPC ID in SSM Parameter Store
+resource "aws_ssm_parameter" "vpc_id" {
+  name  = "/terraform/gloria_vpc_id"
+  type  = "String"
+  value = aws_vpc.gloria_vpc.id
+}
 
-  lifecycle {
-    ignore_changes = [value]
-  }
+# Store Public Subnet IDs
+resource "aws_ssm_parameter" "public_subnet_id_1" {
+  name  = "/terraform/gloria_public_subnet_id_1"
+  type  = "String"
+  value = aws_subnet.public_subnet[0].id
+}
+
+resource "aws_ssm_parameter" "public_subnet_id_2" {
+  name  = "/terraform/gloria_public_subnet_id_2"
+  type  = "String"
+  value = aws_subnet.public_subnet[1].id
+}
+
+# Store Private Subnet ID
+resource "aws_ssm_parameter" "private_subnet_id" {
+  name  = "/terraform/gloria_private_subnet_id"
+  type  = "String"
+  value = aws_subnet.private_subnet.id
+}
+
+# Store Internet Gateway ID
+resource "aws_ssm_parameter" "igw_id" {
+  name  = "/terraform/gloria_igw_id"
+  type  = "String"
+  value = aws_internet_gateway.gloria_igw.id
 }
