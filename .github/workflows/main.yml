@@ -1,0 +1,92 @@
+name: Terraform Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      terraform action:
+        description: "Choose whether to apply or destroy Terraform"
+        required: true
+        type: choice
+        options:
+          - apply
+          - destroy
+
+jobs:
+  vpc:
+    name: Deploy or Destroy VPC & Networking
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Initialize Terraform
+        run: terraform init
+
+      - name: Plan Terraform
+        run: terraform plan -target=aws_vpc.gloria_vpc -target=aws_subnet.public_subnet -target=aws_internet_gateway.gloria_igw
+
+      - name: Apply or Destroy Terraform
+        run: terraform ${{ github.event.inputs.action }} -auto-approve -target=aws_vpc.gloria_vpc -target=aws_subnet.public_subnet -target=aws_internet_gateway.gloria_igw
+
+  security:
+    name: Deploy or Destroy Security Groups
+    needs: vpc
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Initialize Terraform
+        run: terraform init
+
+      - name: Plan Terraform
+        run: terraform plan -target=aws_security_group.gloria_sg
+
+      - name: Apply or Destroy Terraform
+        run: terraform ${{ github.event.inputs.action }} -auto-approve -target=aws_security_group.gloria_sg
+
+  application:
+    name: Deploy or Destroy EC2 & ALB
+    needs: [security]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Initialize Terraform
+        run: terraform init
+
+      - name: Plan Terraform
+        run: terraform plan -target=aws_instance.gloria_server -target=aws_lb.gloria_alb
+
+      - name: Apply or Destroy Terraform
+        run: terraform ${{ github.event.inputs.action }} -auto-approve -target=aws_instance.gloria_server -target=aws_lb.gloria_alb
+
+  waf:
+    name: Deploy or Destroy WAF
+    needs: application
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Initialize Terraform
+        run: terraform init
+
+      - name: Plan Terraform
+        run: terraform plan -target=aws_wafv2_web_acl.gloria_waf -target=aws_wafv2_web_acl_association.gloria_waf_association
+
+      - name: Apply or Destroy Terraform
+        run: terraform ${{ github.event.inputs.action }} -auto-approve -target=aws_wafv2_web_acl.gloria_waf -target=aws_wafv2_web_acl_association.gloria_waf_association
