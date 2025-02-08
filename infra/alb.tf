@@ -5,10 +5,10 @@ resource "aws_lb" "gloria_alb" {
   load_balancer_type = "application"
   security_groups    = [aws_security_group.gloria_alb_sg.id]
 
-  # Attach ALB to both public subnets (SSM parameters)
+  # Attach ALB to both public subnets (Fix incorrect SSM references)
   subnets = [
-    data.aws_ssm_parameter.public_subnet_id_1.value,
-    data.aws_ssm_parameter.public_subnet_id_2.value
+    data.aws_ssm_parameter.public_subnet_1_id.value,
+    data.aws_ssm_parameter.public_subnet_2_id.value
   ]
 
   enable_deletion_protection = false
