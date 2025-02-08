@@ -35,6 +35,9 @@ jobs:
       - name: Terraform Init
         run: terraform init
 
+      - name: Terraform Validate
+        run: terraform validate
+
       - name: Terraform Apply (VPC & SSM Parameters First)
         if: github.event.inputs.action == 'apply'
         run: |
@@ -55,14 +58,11 @@ jobs:
         if: github.event.inputs.action == 'apply'
         run: terraform apply -auto-approve
 
-      - name: Ensure SSM Parameters Exist Before Destroy
+      - name: Debug SSM Parameters Before Destroy
         if: github.event.inputs.action == 'destroy'
         run: |
-          aws ssm get-parameter --name "/terraform/vpc_id" || echo "SSM parameter not found"
-          aws ssm get-parameter --name "/terraform/public_subnet_1_id" || echo "SSM parameter not found"
-          aws ssm get-parameter --name "/terraform/public_subnet_2_id" || echo "SSM parameter not found"
-          aws ssm get-parameter --name "/terraform/private_subnet_id" || echo "SSM parameter not found"
-          aws ssm get-parameter --name "/terraform/igw_id" || echo "SSM parameter not found"
+          echo "Checking existing SSM parameters before deletion..."
+          aws ssm get-parameters --names "/terraform/vpc_id" "/terraform/public_subnet_1_id" "/terraform/public_subnet_2_id" "/terraform/private_subnet_id" "/terraform/igw_id" --query "Parameters[*].Name" --output json || echo "Some SSM parameters are missing."
 
       - name: Remove SSM Parameters (Before Destroy)
         if: github.event.inputs.action == 'destroy'
