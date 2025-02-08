@@ -12,36 +12,20 @@ data "aws_ssm_parameter" "key_name" {
 }
 data "aws_ssm_parameter" "vpc_id" {
   name = "/terraform/vpc_id"
-  lifecycle {
-    ignore_changes = all
-  }
 }
 
 data "aws_ssm_parameter" "public_subnet_1_id" {
   name = "/terraform/public_subnet_1_id"
-  lifecycle {
-    ignore_changes = all
-  }
 }
 
 data "aws_ssm_parameter" "public_subnet_2_id" {
   name = "/terraform/public_subnet_2_id"
-  lifecycle {
-    ignore_changes = all
-  }
 }
 
 data "aws_ssm_parameter" "private_subnet_id" {
   name = "/terraform/private_subnet_id"
-  lifecycle {
-    ignore_changes = all
-  }
 }
 
 data "aws_ssm_parameter" "igw_id" {
   name = "/terraform/igw_id"
-  lifecycle {
-    ignore_changes = all
-  }
 }
-

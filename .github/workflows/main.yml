@@ -47,6 +47,10 @@ jobs:
             -target=aws_ssm_parameter.igw_id \
             -auto-approve
 
+      - name: Terraform Refresh (Ensure Data Sources Exist)
+        if: github.event.inputs.action == 'apply'
+        run: terraform refresh
+
       - name: Terraform Apply (Remaining Infrastructure)
         if: github.event.inputs.action == 'apply'
         run: terraform apply -auto-approve
