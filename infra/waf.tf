@@ -41,4 +41,6 @@ resource "aws_wafv2_web_acl" "gloria_waf" {
 resource "aws_wafv2_web_acl_association" "gloria_waf_association" {
   resource_arn = aws_lb.gloria_alb.arn
   web_acl_arn  = aws_wafv2_web_acl.gloria_waf.arn
+
+  
 }
