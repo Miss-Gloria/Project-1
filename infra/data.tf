@@ -10,26 +10,3 @@ data "aws_ami" "ubuntu" {
 data "aws_ssm_parameter" "key_name" {
   name = "/terraform/gloria_server"
 }
-
-data "aws_ssm_parameter" "vpc_id" {
-  name = "/terraform/gloria_vpc_id"
-}
-
-data "aws_ssm_parameter" "public_subnet_id" {
-  name = "/terraform/gloria_public_subnet_id"
-}
-
-data "aws_ssm_parameter" "private_subnet_id" {
-  name = "/terraform/gloria_private_subnet_id"
-}
-
-data "aws_ssm_parameter" "public_subnet_id_1" {
-  name = "/terraform/gloria_public_subnet_id_1"
-}
-
-data "aws_ssm_parameter" "public_subnet_id_2" {
-  name = "/terraform/gloria_public_subnet_id_2"
-}
-data "aws_ssm_parameter" "igw_id" {
-  name = "/terraform/gloria_igw_id"
-}
