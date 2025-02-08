@@ -41,34 +41,39 @@ resource "aws_internet_gateway" "gloria_igw" {
 
 # Store VPC ID in SSM Parameter Store
 resource "aws_ssm_parameter" "vpc_id" {
-  name  = "/terraform/vpc_id"  # ✅ Ensure this matches data.tf
-  type  = "String"
-  value = aws_vpc.gloria_vpc.id
+  name      = "/terraform/vpc_id"
+  type      = "String"
+  value     = aws_vpc.gloria_vpc.id
+  overwrite = true
 }
 
 # Store IGW ID in SSM Parameter Store
 resource "aws_ssm_parameter" "igw_id" {
-  name  = "/terraform/igw_id"  # ✅ Ensure this matches data.tf
-  type  = "String"
-  value = aws_internet_gateway.gloria_igw.id
+  name      = "/terraform/igw_id"
+  type      = "String"
+  value     = aws_internet_gateway.gloria_igw.id
+  overwrite = true
 }
 
 # Store Public Subnet IDs in SSM Parameter Store
 resource "aws_ssm_parameter" "public_subnet_1_id" {
-  name  = "/terraform/public_subnet_1_id"  # ✅ Ensure this matches data.tf
-  type  = "String"
-  value = aws_subnet.public_subnet[0].id
+  name      = "/terraform/public_subnet_1_id"
+  type      = "String"
+  value     = aws_subnet.public_subnet[0].id
+  overwrite = true
 }
 
 resource "aws_ssm_parameter" "public_subnet_2_id" {
-  name  = "/terraform/public_subnet_2_id"  # ✅ Ensure this matches data.tf
-  type  = "String"
-  value = aws_subnet.public_subnet[1].id
+  name      = "/terraform/public_subnet_2_id"
+  type      = "String"
+  value     = aws_subnet.public_subnet[1].id
+  overwrite = true
 }
 
 # Store Private Subnet ID in SSM Parameter Store
 resource "aws_ssm_parameter" "private_subnet_id" {
-  name  = "/terraform/private_subnet_id"  # ✅ Ensure this matches data.tf
-  type  = "String"
-  value = aws_subnet.private_subnet.id
+  name      = "/terraform/private_subnet_id"
+  type      = "String"
+  value     = aws_subnet.private_subnet.id
+  overwrite = true
 }
