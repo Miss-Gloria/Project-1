@@ -1,6 +1,6 @@
 resource "aws_wafv2_web_acl" "gloria_waf" {
   name        = "gloria-waf"
-  description = "WAF for Gloria's ALB"
+  description = "WAF for Gloria ALB"
   scope       = "REGIONAL"  # Use "CLOUDFRONT" for global WAF
 
   default_action {
