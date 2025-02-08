@@ -4,10 +4,10 @@ resource "aws_lb" "gloria_alb" {
   load_balancer_type = "application"
   security_groups    = [aws_security_group.gloria_alb_sg.id]
 
-  # Attach ALB to both public subnets (SSM parameters)
+  # Attach ALB to both public subnets (Corrected SSM parameters)
   subnets = [
-    data.aws_ssm_parameter.public_subnet_id_1.value,
-    data.aws_ssm_parameter.public_subnet_id_2.value
+    data.aws_ssm_parameter.public_subnet_1_id.value,  # ✅ Corrected Name
+    data.aws_ssm_parameter.public_subnet_2_id.value   # ✅ Corrected Name
   ]
 
   enable_deletion_protection = false
@@ -33,7 +33,7 @@ resource "aws_lb_target_group" "gloria_tg" {
     unhealthy_threshold = 2
   }
 
-lifecycle {
+  lifecycle {
     create_before_destroy = true
   }
 
