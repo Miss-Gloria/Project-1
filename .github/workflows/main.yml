@@ -51,14 +51,23 @@ jobs:
         if: github.event.inputs.action == 'apply'
         run: terraform apply -auto-approve
 
+      - name: Ensure SSM Parameters Exist Before Destroy
+        if: github.event.inputs.action == 'destroy'
+        run: |
+          aws ssm get-parameter --name "/terraform/vpc_id" || echo "SSM parameter not found"
+          aws ssm get-parameter --name "/terraform/public_subnet_1_id" || echo "SSM parameter not found"
+          aws ssm get-parameter --name "/terraform/public_subnet_2_id" || echo "SSM parameter not found"
+          aws ssm get-parameter --name "/terraform/private_subnet_id" || echo "SSM parameter not found"
+          aws ssm get-parameter --name "/terraform/igw_id" || echo "SSM parameter not found"
+
       - name: Remove SSM Parameters (Before Destroy)
         if: github.event.inputs.action == 'destroy'
         run: |
-          aws ssm delete-parameter --name "/terraform/vpc_id"
-          aws ssm delete-parameter --name "/terraform/public_subnet_1_id"
-          aws ssm delete-parameter --name "/terraform/public_subnet_2_id"
-          aws ssm delete-parameter --name "/terraform/private_subnet_id"
-          aws ssm delete-parameter --name "/terraform/igw_id"
+          aws ssm delete-parameter --name "/terraform/vpc_id" || echo "Parameter already deleted"
+          aws ssm delete-parameter --name "/terraform/public_subnet_1_id" || echo "Parameter already deleted"
+          aws ssm delete-parameter --name "/terraform/public_subnet_2_id" || echo "Parameter already deleted"
+          aws ssm delete-parameter --name "/terraform/private_subnet_id" || echo "Parameter already deleted"
+          aws ssm delete-parameter --name "/terraform/igw_id" || echo "Parameter already deleted"
 
       - name: Terraform Destroy (Ensure Full Cleanup)
         if: github.event.inputs.action == 'destroy'
