@@ -3,13 +3,13 @@ name: Terraform Deployment
 on:
   workflow_dispatch:
     inputs:
-      action:
-        description: "Choose whether to apply or destroy Terraform"
-        required: true
+      terraform_action: 
         type: choice
+        description: "Choose whether to apply or destroy Terraform"
         options:
           - apply
           - destroy
+        required: true
 
 jobs:
   deploy-infrastructure:
