@@ -1,3 +1,4 @@
+# Create the VPC
 resource "aws_vpc" "gloria_vpc" {
   cidr_block           = "10.0.0.0/16"
   enable_dns_support   = true
@@ -38,29 +39,36 @@ resource "aws_internet_gateway" "gloria_igw" {
   vpc_id = aws_vpc.gloria_vpc.id
 }
 
+# Store VPC ID in SSM Parameter Store
+resource "aws_ssm_parameter" "vpc_id" {
+  name  = "/terraform/vpc_id"  # ✅ Ensure this matches data.tf
+  type  = "String"
+  value = aws_vpc.gloria_vpc.id
+}
+
 # Store IGW ID in SSM Parameter Store
 resource "aws_ssm_parameter" "igw_id" {
-  name  = "/terraform/gloria_igw_id"
+  name  = "/terraform/igw_id"  # ✅ Ensure this matches data.tf
   type  = "String"
   value = aws_internet_gateway.gloria_igw.id
 }
 
 # Store Public Subnet IDs in SSM Parameter Store
 resource "aws_ssm_parameter" "public_subnet_1_id" {
-  name  = "/terraform/public_subnet_id_1"
+  name  = "/terraform/public_subnet_1_id"  # ✅ Ensure this matches data.tf
   type  = "String"
   value = aws_subnet.public_subnet[0].id
 }
 
 resource "aws_ssm_parameter" "public_subnet_2_id" {
-  name  = "/terraform/public_subnet_id_2"
+  name  = "/terraform/public_subnet_2_id"  # ✅ Ensure this matches data.tf
   type  = "String"
   value = aws_subnet.public_subnet[1].id
 }
 
 # Store Private Subnet ID in SSM Parameter Store
 resource "aws_ssm_parameter" "private_subnet_id" {
-  name  = "/terraform/private_subnet_id"
+  name  = "/terraform/private_subnet_id"  # ✅ Ensure this matches data.tf
   type  = "String"
   value = aws_subnet.private_subnet.id
 }
