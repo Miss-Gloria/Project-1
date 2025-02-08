@@ -19,6 +19,10 @@ jobs:
       id-token: write  # ✅ Required for OIDC authentication
       contents: read   # ✅ Required to access repository contents
 
+    defaults:
+      run:
+        working-directory: infra  # ✅ Set Terraform working directory
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
