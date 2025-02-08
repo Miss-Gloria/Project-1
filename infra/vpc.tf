@@ -41,39 +41,34 @@ resource "aws_internet_gateway" "gloria_igw" {
 
 # Store VPC ID in SSM Parameter Store
 resource "aws_ssm_parameter" "vpc_id" {
-  name      = "/terraform/vpc_id"
-  type      = "String"
-  value     = aws_vpc.gloria_vpc.id
-  overwrite = true
+  name  = "/terraform/vpc_id"
+  type  = "String"
+  value = aws_vpc.gloria_vpc.id
 }
 
 # Store IGW ID in SSM Parameter Store
 resource "aws_ssm_parameter" "igw_id" {
-  name      = "/terraform/igw_id"
-  type      = "String"
-  value     = aws_internet_gateway.gloria_igw.id
-  overwrite = true
+  name  = "/terraform/igw_id"
+  type  = "String"
+  value = aws_internet_gateway.gloria_igw.id
 }
 
 # Store Public Subnet IDs in SSM Parameter Store
 resource "aws_ssm_parameter" "public_subnet_1_id" {
-  name      = "/terraform/public_subnet_1_id"
-  type      = "String"
-  value     = aws_subnet.public_subnet[0].id
-  overwrite = true
+  name  = "/terraform/public_subnet_1_id"
+  type  = "String"
+  value = aws_subnet.public_subnet[0].id
 }
 
 resource "aws_ssm_parameter" "public_subnet_2_id" {
-  name      = "/terraform/public_subnet_2_id"
-  type      = "String"
-  value     = aws_subnet.public_subnet[1].id
-  overwrite = true
+  name  = "/terraform/public_subnet_2_id"
+  type  = "String"
+  value = aws_subnet.public_subnet[1].id
 }
 
 # Store Private Subnet ID in SSM Parameter Store
 resource "aws_ssm_parameter" "private_subnet_id" {
-  name      = "/terraform/private_subnet_id"
-  type      = "String"
-  value     = aws_subnet.private_subnet.id
-  overwrite = true
+  name  = "/terraform/private_subnet_id"
+  type  = "String"
+  value = aws_subnet.private_subnet.id
 }
