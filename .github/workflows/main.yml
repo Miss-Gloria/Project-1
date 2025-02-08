@@ -35,13 +35,31 @@ jobs:
       - name: Terraform Init
         run: terraform init
 
-      - name: Terraform Plan
-        run: terraform plan
+      - name: Terraform Apply (VPC & SSM Parameters First)
+        if: github.event.inputs.action == 'apply'
+        run: |
+          terraform apply \
+            -target=aws_vpc.gloria_vpc \
+            -target=aws_ssm_parameter.vpc_id \
+            -target=aws_ssm_parameter.public_subnet_1_id \
+            -target=aws_ssm_parameter.public_subnet_2_id \
+            -target=aws_ssm_parameter.private_subnet_id \
+            -target=aws_ssm_parameter.igw_id \
+            -auto-approve
 
-      - name: Terraform Apply (Full Infrastructure)
+      - name: Terraform Apply (Remaining Infrastructure)
         if: github.event.inputs.action == 'apply'
         run: terraform apply -auto-approve
 
-      - name: Terraform Destroy (Optional)
+      - name: Remove SSM Parameters (Before Destroy)
+        if: github.event.inputs.action == 'destroy'
+        run: |
+          aws ssm delete-parameter --name "/terraform/vpc_id"
+          aws ssm delete-parameter --name "/terraform/public_subnet_1_id"
+          aws ssm delete-parameter --name "/terraform/public_subnet_2_id"
+          aws ssm delete-parameter --name "/terraform/private_subnet_id"
+          aws ssm delete-parameter --name "/terraform/igw_id"
+
+      - name: Terraform Destroy (Ensure Full Cleanup)
         if: github.event.inputs.action == 'destroy'
         run: terraform destroy -auto-approve
