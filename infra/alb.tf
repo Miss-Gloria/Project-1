@@ -58,7 +58,7 @@ resource "aws_lb_listener" "gloria_http_listener" {
     redirect {
       protocol = "HTTPS"
       port     = "443"
-      status_code = "301"
+      status_code = "HTTP_301"
     }
   }
 }
