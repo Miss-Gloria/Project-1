@@ -1,15 +1,13 @@
+# ALB Resource
 resource "aws_lb" "gloria_alb" {
   name               = "gloria-alb"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.gloria_alb_sg.id]
-
-  # Attach ALB to both public subnets (Corrected SSM parameters)
   subnets = [
-    data.aws_ssm_parameter.public_subnet_1_id.value,  # ✅ Corrected Name
-    data.aws_ssm_parameter.public_subnet_2_id.value   # ✅ Corrected Name
+    data.aws_ssm_parameter.public_subnet_1_id.value,
+    data.aws_ssm_parameter.public_subnet_2_id.value
   ]
-
   enable_deletion_protection = false
 
   tags = {
@@ -49,11 +47,30 @@ resource "aws_lb_target_group_attachment" "gloria_tg_attachment" {
   port             = 80
 }
 
-# ALB Listener to Route HTTP Traffic
-resource "aws_lb_listener" "gloria_listener" {
+# HTTP Listener
+resource "aws_lb_listener" "gloria_http_listener" {
   load_balancer_arn = aws_lb.gloria_alb.arn
   port              = 80
   protocol          = "HTTP"
+
+  default_action {
+    type             = "redirect"
+    redirect {
+      protocol = "HTTPS"
+      port     = "443"
+      status_code = "301"
+    }
+  }
+}
+
+# HTTPS Listener
+resource "aws_lb_listener" "gloria_https_listener" {
+  load_balancer_arn = aws_lb.gloria_alb.arn
+  port              = 443
+  protocol          = "HTTPS"
+
+  ssl_policy       = "ELBSecurityPolicy-2016-08"
+  certificate_arn  = aws_acm_certificate_validation.validated_cert.certificate_arn
 
   default_action {
     type             = "forward"
