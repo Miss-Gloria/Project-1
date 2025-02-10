@@ -1,4 +1,3 @@
-# ALB Resource
 resource "aws_lb" "gloria_alb" {
   name               = "gloria-alb"
   internal           = false
@@ -15,7 +14,6 @@ resource "aws_lb" "gloria_alb" {
   }
 }
 
-# Target Group for ALB to Forward Traffic
 resource "aws_lb_target_group" "gloria_tg" {
   name        = "gloria-target-group"
   port        = 80
@@ -40,14 +38,12 @@ resource "aws_lb_target_group" "gloria_tg" {
   }
 }
 
-# Attach EC2 Instance to the Target Group
 resource "aws_lb_target_group_attachment" "gloria_tg_attachment" {
   target_group_arn = aws_lb_target_group.gloria_tg.arn
   target_id        = aws_instance.gloria_server.id
   port             = 80
 }
 
-# HTTP Listener
 resource "aws_lb_listener" "gloria_http_listener" {
   load_balancer_arn = aws_lb.gloria_alb.arn
   port              = 80
@@ -63,7 +59,6 @@ resource "aws_lb_listener" "gloria_http_listener" {
   }
 }
 
-# HTTPS Listener
 resource "aws_lb_listener" "gloria_https_listener" {
   load_balancer_arn = aws_lb.gloria_alb.arn
   port              = 443

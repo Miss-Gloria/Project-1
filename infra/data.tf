@@ -5,10 +5,9 @@ data "aws_ami" "ubuntu" {
     name   = "name"
     values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"]
   }
-  owners = ["099720109477"] # Canonical (Ubuntu)
+  owners = ["099720109477"]
 }
 
-# Fetch stored parameters from AWS SSM Parameter Store
 data "aws_ssm_parameter" "key_name" {
   name = "/terraform/gloria_server"
 }

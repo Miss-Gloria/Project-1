@@ -1,9 +1,5 @@
-resource "aws_route53_zone" "domain_zone" {
-  name = "theglorialarbi.com"
-}
-
 resource "aws_route53_record" "gloria_alb" {
-  zone_id = aws_route53_zone.domain_zone.zone_id
+  zone_id = "Z04681641RLQ8WS5XLSPX"  # Use the existing hosted zone ID
   name    = "app"
   type    = "A"
 
@@ -34,7 +30,7 @@ resource "aws_route53_record" "cert_validation" {
     }
   }
 
-  zone_id = aws_route53_zone.domain_zone.zone_id
+  zone_id = "Z04681641RLQ8WS5XLSPX"  # Use the existing hosted zone ID
   name    = each.value.name
   type    = each.value.type
   records = [each.value.value]

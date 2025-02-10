@@ -1,7 +1,7 @@
 resource "aws_security_group" "gloria_sg" {
   name        = "gloria-security-group"
   description = "Security group for Gloria infrastructure"
-  vpc_id      = data.aws_ssm_parameter.vpc_id.value  # ✅ Use SSM to fetch VPC ID
+  vpc_id      = data.aws_ssm_parameter.vpc_id.value
 
   ingress {
     from_port   = 22
@@ -39,7 +39,7 @@ resource "aws_security_group" "gloria_sg" {
 resource "aws_security_group" "gloria_alb_sg" {
   name        = "gloria-alb-sg"
   description = "Security group for ALB"
-  vpc_id      = data.aws_ssm_parameter.vpc_id.value  # ✅ Use SSM to fetch VPC ID
+  vpc_id      = data.aws_ssm_parameter.vpc_id.value 
 
   ingress {
     from_port   = 80

@@ -21,7 +21,6 @@ variable "instance_type" {
   description = "EC2 instance type"
   default     = "t2.medium"
 }
-
 variable "key_pair_name" {
   description = "SSH Key Pair name stored in AWS SSM Parameter Store"
   default     = "/terraform/gloria_server"
