@@ -1,3 +1,7 @@
+# 🏗️ Use existing hosted zone (DO NOT CREATE A NEW ONE)
+# Hosted zone for theglorialarbi.com
+# Ensure you import the existing hosted zone before using this configuration
+
 resource "aws_route53_record" "gloria_alb" {
   zone_id = "Z04681641RLQ8WS5XLSPX"  # Use the existing hosted zone ID
   name    = "app"
@@ -10,6 +14,7 @@ resource "aws_route53_record" "gloria_alb" {
   }
 }
 
+# 🔒 SSL Certificate for theglorialarbi.com
 resource "aws_acm_certificate" "domain_cert" {
   domain_name       = "theglorialarbi.com"
   validation_method = "DNS"
@@ -21,6 +26,7 @@ resource "aws_acm_certificate" "domain_cert" {
   }
 }
 
+# 📝 CNAME Records for SSL Validation
 resource "aws_route53_record" "cert_validation" {
   for_each = {
     for dvo in aws_acm_certificate.domain_cert.domain_validation_options : dvo.domain_name => {
@@ -35,8 +41,13 @@ resource "aws_route53_record" "cert_validation" {
   type    = each.value.type
   records = [each.value.value]
   ttl     = 300
+
+  lifecycle {
+    ignore_changes = all  # Prevent Terraform from modifying an existing record
+  }
 }
 
+# ✅ Validate SSL Certificate (ACM)
 resource "aws_acm_certificate_validation" "validated_cert" {
   certificate_arn         = aws_acm_certificate.domain_cert.arn
   validation_record_fqdns = [for record in aws_route53_record.cert_validation : record.fqdn]
