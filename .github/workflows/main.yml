@@ -42,12 +42,6 @@ jobs:
       - name: Terraform Validate
         run: terraform validate
 
-      - name: Remove ACM CNAME Record from Terraform State (If Exists)
-        run: terraform state rm 'aws_route53_record.cert_validation["theglorialarbi.com"]' || echo "Record not found, skipping"
-
-      - name: Refresh Terraform State
-        run: terraform refresh
-
       - name: Terraform Apply
         if: github.event.inputs.terraform_action == 'apply'
         run: terraform apply -auto-approve
