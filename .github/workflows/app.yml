@@ -1,0 +1,63 @@
+name: Deploy Node.js App
+
+on:
+  workflow_dispatch:
+
+jobs:
+  install-and-scan:
+    name: Install and Scan Dependencies
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./app
+    steps:
+      - name: Check Out Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Security Scan (npm audit)
+        run: |
+          npm audit --json > audit-report.json
+          echo "Generated npm audit report."
+
+      - name: Upload Audit Report as Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: npm-audit-report
+          path: audit-report.json
+
+  deploy-to-server:
+    name: Deploy Node.js App to EC2
+    needs: install-and-scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Out Repository
+        uses: actions/checkout@v4
+
+      - name: Deploy to Server
+        uses: easingthemes/ssh-deploy@main
+        with:
+          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
+          REMOTE_HOST: app.theglorialarbi.com 
+          REMOTE_USER: ubuntu  
+          TARGET: /var/www/html  
+
+      - name: Executing Remote Commands via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: app.theglorialarbi.com
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ubuntu
+            sudo rm -rf /var/www/html/*
+            sudo mv /home/ubuntu/app/* /var/www/html
+            sudo systemctl restart nginx
+

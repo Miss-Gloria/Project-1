@@ -16,12 +16,12 @@ jobs:
     name: Deploy Infrastructure
     runs-on: ubuntu-latest
     permissions:
-      id-token: write  # ✅ Required for OIDC authentication
-      contents: read   # ✅ Required to access repository contents
+      id-token: write
+      contents: read   
 
     defaults:
       run:
-        working-directory: infra  # ✅ Set Terraform working directory
+        working-directory: infra 
 
     steps:
       - name: Checkout Repository
@@ -41,6 +41,12 @@ jobs:
 
       - name: Terraform Validate
         run: terraform validate
+
+      - name: Remove ACM CNAME Record from Terraform State (If Exists)
+        run: terraform state rm 'aws_route53_record.cert_validation["theglorialarbi.com"]' || echo "Record not found, skipping"
+
+      - name: Refresh Terraform State
+        run: terraform refresh
 
       - name: Terraform Apply
         if: github.event.inputs.terraform_action == 'apply'
