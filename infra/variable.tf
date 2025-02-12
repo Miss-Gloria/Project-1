@@ -25,3 +25,11 @@ variable "key_pair_name" {
   description = "SSH Key Pair name stored in AWS SSM Parameter Store"
   default     = "/terraform/gloria_server"
 }
+provider "aws" {
+  region = var.aws_region  # ✅ Default region from variables
+}
+
+provider "aws" {
+  alias  = "acm"
+  region = "us-east-1"  # ✅ Only ACM uses `us-east-1`
+}
