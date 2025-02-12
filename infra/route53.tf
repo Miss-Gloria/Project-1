@@ -1,12 +1,12 @@
-# 🏗️ Fetch Existing Hosted Zone from Route 53
+# 🏗️ Fetch Existing Hosted Zone from AWS
 data "aws_route53_zone" "gloria_zone" {
   name         = "theglorialarbi.com"
   private_zone = false
 }
 
-# 🔒 Create SSL Certificate for `theglorialarbi.com`
+# 🔒 SSL Certificate for `theglorialarbi.com`
 resource "aws_acm_certificate" "domain_cert" {
-  provider = aws.acm  # ✅ Ensures ACM uses the correct region
+  provider = aws.acm  # ✅ Ensures ACM uses `us-east-1`
 
   domain_name       = "theglorialarbi.com"
   validation_method = "DNS"
@@ -17,7 +17,7 @@ resource "aws_acm_certificate" "domain_cert" {
   }
 }
 
-# 📝 Create DNS Records for ACM Validation (Route 53)
+# 📝 CNAME Records for SSL Validation (ACM)
 resource "aws_route53_record" "cert_validation" {
   for_each = {
     for dvo in aws_acm_certificate.domain_cert.domain_validation_options : dvo.domain_name => {
@@ -36,23 +36,21 @@ resource "aws_route53_record" "cert_validation" {
 
 # ✅ Validate SSL Certificate (DNS Validation)
 resource "aws_acm_certificate_validation" "validated_cert" {
-  provider = aws.acm  # ✅ Ensures ACM validation is done in `us-east-1`
+  provider = aws.acm  # ✅ Ensures ACM validation is in `us-east-1`
 
   certificate_arn         = aws_acm_certificate.domain_cert.arn
   validation_record_fqdns = [for record in aws_route53_record.cert_validation : record.fqdn]
 }
 
-# 🌍 ALB Listener (Attach SSL Certificate)
-resource "aws_lb_listener" "gloria_https_listener" {
-  load_balancer_arn = aws_lb.gloria_alb.arn
-  port              = 443
-  protocol          = "HTTPS"
+# 🏗️ Route 53 Record for ALB (app.theglorialarbi.com)
+resource "aws_route53_record" "gloria_alb" {
+  zone_id = data.aws_route53_zone.gloria_zone.zone_id
+  name    = "app"
+  type    = "A"
 
-  ssl_policy       = "ELBSecurityPolicy-2016-08"
-  certificate_arn  = aws_acm_certificate.domain_cert.arn  # ✅ Correct Certificate Reference
-
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.gloria_tg.arn
+  alias {
+    name                   = aws_lb.gloria_alb.dns_name
+    zone_id                = aws_lb.gloria_alb.zone_id
+    evaluate_target_health = true
   }
 }
