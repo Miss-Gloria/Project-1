@@ -26,31 +26,21 @@ resource "aws_acm_certificate" "domain_cert" {
   tags = {
     Name = "The Gloria Larbi SSL Certificate"
   }
-}
-
-# 📝 CNAME Records for SSL Validation
-resource "aws_route53_record" "cert_validation" {
-  for_each = {
-    for dvo in aws_acm_certificate.domain_cert.domain_validation_options : dvo.domain_name => {
-      name  = dvo.resource_record_name
-      type  = dvo.resource_record_type
-      value = dvo.resource_record_value
-    }
-  }
-
-  zone_id = data.aws_ssm_parameter.hosted_zone_id.value  # ✅ Uses stored value from SSM
-  name    = each.value.name
-  type    = each.value.type
-  records = [each.value.value]
-  ttl     = 300
 
   lifecycle {
-    ignore_changes = all  # 🚀 Prevents Terraform from overwriting existing records
+    create_before_destroy = true  # Ensures SSL certificate is always valid
   }
 }
 
-# ✅ Validate SSL Certificate (ACM)
+# ✅ Fetch Existing CNAME Record Dynamically
+data "aws_route53_record" "cert_validation" {
+  zone_id = data.aws_ssm_parameter.hosted_zone_id.value
+  name    = "_ecd117fc15356b9b1c7bb0ecbfb1fd87.theglorialarbi.com"
+  type    = "CNAME"
+}
+
+# ✅ Validate SSL Certificate (ACM) Using Existing CNAME
 resource "aws_acm_certificate_validation" "validated_cert" {
   certificate_arn         = aws_acm_certificate.domain_cert.arn
-  validation_record_fqdns = [for record in aws_route53_record.cert_validation : record.fqdn]
+  validation_record_fqdns = [data.aws_route53_record.cert_validation.name]
 }
