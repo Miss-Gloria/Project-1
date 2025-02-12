@@ -1,9 +1,11 @@
-# 🏗️ Use existing hosted zone (DO NOT CREATE A NEW ONE)
-# Hosted zone for theglorialarbi.com
-# Ensure you import the existing hosted zone before using this configuration
+# 🏗️ Fetch Hosted Zone ID from AWS SSM Parameter Store
+data "aws_ssm_parameter" "hosted_zone_id" {
+  name = "/terraform/hosted_zone_id"
+}
 
+# 🏗️ Route 53 Record for ALB (app.theglorialarbi.com)
 resource "aws_route53_record" "gloria_alb" {
-  zone_id = "Z04681641RLQ8WS5XLSPX"  # Use the existing hosted zone ID
+  zone_id = data.aws_ssm_parameter.hosted_zone_id.value  # ✅ Uses stored value from SSM
   name    = "app"
   type    = "A"
 
@@ -36,14 +38,14 @@ resource "aws_route53_record" "cert_validation" {
     }
   }
 
-  zone_id = "Z04681641RLQ8WS5XLSPX"  # Use the existing hosted zone ID
+  zone_id = data.aws_ssm_parameter.hosted_zone_id.value  # ✅ Uses stored value from SSM
   name    = each.value.name
   type    = each.value.type
   records = [each.value.value]
   ttl     = 300
 
   lifecycle {
-    ignore_changes = all  # Prevent Terraform from modifying an existing record
+    ignore_changes = all  # 🚀 Prevents Terraform from overwriting existing records
   }
 }
 
