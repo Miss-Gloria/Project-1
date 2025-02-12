@@ -16,16 +16,18 @@ resource "aws_route53_record" "gloria_alb" {
   }
 }
 
-# 🏗️ Try to Fetch Existing ACM Certificate
+# 🔒 Try to Fetch Existing ACM Certificate (Ignore If None Found)
 data "aws_acm_certificate" "existing_cert" {
-  domain      = "theglorialarbi.com"
-  statuses    = ["ISSUED"]
+  domain   = "theglorialarbi.com"
+  statuses = ["ISSUED"]
   most_recent = true
+  provider = aws.us-east-1  # ✅ ACM must be in `us-east-1` for ALB
 }
 
-# 🔒 SSL Certificate for theglorialarbi.com (Create If Not Found)
+# ✅ Create SSL Certificate If None Exists
 resource "aws_acm_certificate" "domain_cert" {
-  count              = length(data.aws_acm_certificate.existing_cert.arn) > 0 ? 0 : 1
+  count = length(try(data.aws_acm_certificate.existing_cert.arn, "")) > 0 ? 0 : 1
+
   domain_name       = "theglorialarbi.com"
   validation_method = "DNS"
 
@@ -42,6 +44,5 @@ resource "aws_acm_certificate" "domain_cert" {
 
 # ✅ Use Existing or New ACM Certificate Validation
 resource "aws_acm_certificate_validation" "validated_cert" {
-  certificate_arn = length(data.aws_acm_certificate.existing_cert.arn) > 0 ? data.aws_acm_certificate.existing_cert.arn : aws_acm_certificate.domain_cert[0].arn
+  certificate_arn = length(try(data.aws_acm_certificate.existing_cert.arn, "")) > 0 ? data.aws_acm_certificate.existing_cert.arn : aws_acm_certificate.domain_cert[0].arn
 }
-
