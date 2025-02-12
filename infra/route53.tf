@@ -21,7 +21,6 @@ data "aws_acm_certificate" "existing_cert" {
   domain      = "theglorialarbi.com"
   statuses    = ["ISSUED"]
   most_recent = true
-  region      = "us-east-1"  # ✅ Ensure this matches your certificate region
 }
 
 # 🔒 SSL Certificate for theglorialarbi.com (Create If Not Found)
