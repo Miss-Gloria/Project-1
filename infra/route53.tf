@@ -16,31 +16,13 @@ resource "aws_route53_record" "gloria_alb" {
   }
 }
 
-# 🔒 SSL Certificate for theglorialarbi.com
-resource "aws_acm_certificate" "domain_cert" {
-  domain_name       = "theglorialarbi.com"
-  validation_method = "DNS"
-
-  subject_alternative_names = ["*.theglorialarbi.com"]
-
-  tags = {
-    Name = "The Gloria Larbi SSL Certificate"
-  }
-
-  lifecycle {
-    create_before_destroy = true  # Ensures SSL certificate is always valid
-  }
+# 🔒 Fetch Existing ACM Certificate for theglorialarbi.com
+data "aws_acm_certificate" "existing_cert" {
+  domain   = "theglorialarbi.com"
+  statuses = ["ISSUED"]  # Only get issued certificates
 }
 
-# ✅ Fetch Existing CNAME Record Dynamically
-data "aws_route53_record" "cert_validation" {
-  zone_id = data.aws_ssm_parameter.hosted_zone_id.value
-  name    = "_ecd117fc15356b9b1c7bb0ecbfb1fd87.theglorialarbi.com"
-  type    = "CNAME"
-}
-
-# ✅ Validate SSL Certificate (ACM) Using Existing CNAME
+# ✅ Use Existing ACM Certificate Validation (No CNAME Changes)
 resource "aws_acm_certificate_validation" "validated_cert" {
-  certificate_arn         = aws_acm_certificate.domain_cert.arn
-  validation_record_fqdns = [data.aws_route53_record.cert_validation.name]
+  certificate_arn = data.aws_acm_certificate.existing_cert.arn
 }
