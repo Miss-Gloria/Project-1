@@ -32,3 +32,14 @@ data "aws_ssm_parameter" "igw_id" {
   name = "/terraform/igw_id"
 }
 
+data "aws_ssm_parameter" "acm_certificate_arn" {
+  name = "/terraform/acm_certificate_arn"
+}
+
+data "aws_ssm_parameter" "acm_cname_name" {
+  name = "/terraform/acm_cname_name"
+}
+
+data "aws_ssm_parameter" "acm_cname_value" {
+  name = "/terraform/acm_cname_value"
+}

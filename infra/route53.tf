@@ -1,36 +1,19 @@
-# 🏗️ Fetch Existing Hosted Zone from AWS
-data "aws_route53_zone" "gloria_zone" {
-  name         = "theglorialarbi.com"
-  private_zone = false
-}
-
-# ✅ Fetch Stored ACM Certificate ARN from AWS SSM
-data "aws_ssm_parameter" "acm_certificate_arn" {
-  name = "/terraform/acm_certificate_arn"
-}
-
-# 📝 CNAME Record for SSL Validation (Manual Entry Required)
+# 📝 CNAME Record for SSL Validation (Using SSM Parameters)
 resource "aws_route53_record" "cert_validation" {
-  name    = "_ecd117fc15356b9b1c7bb0ecbfb1fd87.theglorialarbi.com"  # 🔹 Manually add this from ACM
+  name    = data.aws_ssm_parameter.acm_cname_name.value
   type    = "CNAME"
-  records = ["_b4146422409a75ae9cc82469e4097b6.zfylvmchrl.acm-validations.aws."]  # 🔹 Manually add this from ACM
+  records = [data.aws_ssm_parameter.acm_cname_value.value]
   ttl     = 300
   zone_id = data.aws_route53_zone.gloria_zone.zone_id
 
   lifecycle {
-    ignore_changes = all  # Prevent Terraform from overwriting existing records
+    ignore_changes = all  # Prevent Terraform from modifying existing records
   }
 }
 
-# 🏗️ Route 53 Record for ALB (app.theglorialarbi.com)
-resource "aws_route53_record" "gloria_alb" {
-  zone_id = data.aws_route53_zone.gloria_zone.zone_id
-  name    = "app"
-  type    = "A"
+# ✅ Validate SSL Certificate (ACM)
+resource "aws_acm_certificate_validation" "validated_cert" {
+  certificate_arn = data.aws_ssm_parameter.acm_certificate_arn.value
 
-  alias {
-    name                   = aws_lb.gloria_alb.dns_name
-    zone_id                = aws_lb.gloria_alb.zone_id
-    evaluate_target_health = true
-  }
+  validation_record_fqdns = [aws_route53_record.cert_validation.fqdn]
 }
