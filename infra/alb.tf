@@ -1,3 +1,4 @@
+# 🏗️ Application Load Balancer (ALB)
 resource "aws_lb" "gloria_alb" {
   name               = "gloria-alb"
   internal           = false
@@ -14,6 +15,7 @@ resource "aws_lb" "gloria_alb" {
   }
 }
 
+# 🏗️ Target Group for ALB
 resource "aws_lb_target_group" "gloria_tg" {
   name        = "gloria-target-group"
   port        = 80
@@ -38,34 +40,37 @@ resource "aws_lb_target_group" "gloria_tg" {
   }
 }
 
+# 🎯 Attach EC2 Instance to Target Group
 resource "aws_lb_target_group_attachment" "gloria_tg_attachment" {
   target_group_arn = aws_lb_target_group.gloria_tg.arn
   target_id        = aws_instance.gloria_server.id
   port             = 80
 }
 
+# 🔄 Redirect HTTP to HTTPS
 resource "aws_lb_listener" "gloria_http_listener" {
   load_balancer_arn = aws_lb.gloria_alb.arn
   port              = 80
   protocol          = "HTTP"
 
   default_action {
-    type             = "redirect"
+    type = "redirect"
     redirect {
-      protocol = "HTTPS"
-      port     = "443"
+      protocol    = "HTTPS"
+      port        = "443"
       status_code = "HTTP_301"
     }
   }
 }
 
+# 🔒 HTTPS Listener (Using Stored ACM Certificate from SSM)
 resource "aws_lb_listener" "gloria_https_listener" {
   load_balancer_arn = aws_lb.gloria_alb.arn
   port              = 443
   protocol          = "HTTPS"
 
-  ssl_policy       = "ELBSecurityPolicy-2016-08"
-  certificate_arn  = aws_acm_certificate_validation.validated_cert.certificate_arn
+  ssl_policy      = "ELBSecurityPolicy-2016-08"
+  certificate_arn = data.aws_ssm_parameter.acm_certificate_arn.value  # ✅ Uses stored ACM ARN
 
   default_action {
     type             = "forward"
