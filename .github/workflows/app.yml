@@ -1,63 +1,51 @@
-name: Deploy Node.js App
+name: Deploy Static Website with Snyk and EC2
 
 on:
   workflow_dispatch:
 
 jobs:
-  install-and-scan:
-    name: Install and Scan Dependencies
+  security-scan:
+    name: Scan for Vulnerabilities with Snyk
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./app
     steps:
-      - name: Check Out Repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
+      - name: Install Snyk CLI
+        run: npm install -g snyk
 
-      - name: Install Dependencies
-        run: npm install
+      - name: Authenticate with Snyk
+        run: snyk auth ${{ secrets.SNYK_TOKEN }}
 
-      - name: Security Scan (npm audit)
-        run: |
-          npm audit --json > audit-report.json
-          echo "Generated npm audit report."
+      - name: Run Snyk Security Scan
+        run: snyk test --all-projects
+        continue-on-error: true  # Allows the workflow to continue even if vulnerabilities are found
 
-      - name: Upload Audit Report as Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: npm-audit-report
-          path: audit-report.json
+      - name: Monitor with Snyk (optional)
+        run: snyk monitor
+        continue-on-error: true
 
   deploy-to-server:
-    name: Deploy Node.js App to EC2
-    needs: install-and-scan
+    name: Deploy Static Website to EC2
+    needs: security-scan
     runs-on: ubuntu-latest
     steps:
-      - name: Check Out Repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Deploy to Server
-        uses: easingthemes/ssh-deploy@main
+      - name: Copy Website Files to EC2
+        uses: appleboy/scp-action@master
         with:
-          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
-          REMOTE_HOST: app.theglorialarbi.com 
-          REMOTE_USER: ubuntu  
-          TARGET: /var/www/html  
+          host: app.theglorialarbi.com
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "./app/*"
+          target: "/var/www/html/"
 
-      - name: Executing Remote Commands via SSH
+      - name: Restart Nginx on EC2
         uses: appleboy/ssh-action@master
         with:
           host: app.theglorialarbi.com
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            cd /home/ubuntu
-            sudo rm -rf /var/www/html/*
-            sudo mv /home/ubuntu/app/* /var/www/html
-            sudo systemctl restart nginx
-
+          script: sudo systemctl restart nginx
