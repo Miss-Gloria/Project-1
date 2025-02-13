@@ -32,6 +32,3 @@ data "aws_ssm_parameter" "igw_id" {
   name = "/terraform/igw_id"
 }
 
-data "aws_ssm_parameter" "acm_certificate_arn" {
-  name = "/terraform/acm_certificate_arn"
-}
